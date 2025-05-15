@@ -1,0 +1,132 @@
+/* General styling */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+svg {
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Dashboard title styling */
+.dashboard-title {
+  font-size: 28px;
+  font-weight: bold;
+  fill: #333;
+  text-anchor: middle;
+}
+
+.dashboard-subtitle {
+  font-size: 16px;
+  fill: #666;
+  text-anchor: middle;
+}
+
+/* Chart titles */
+.chart-title {
+  font-size: 20px;
+  font-weight: bold;
+  fill: #333;
+  text-anchor: middle;
+}
+
+.chart-subtitle {
+  font-size: 14px;
+  fill: #666;
+  text-anchor: middle;
+}
+
+/* Axis styling */
+.axis path,
+.axis line {
+  stroke: #ccc;
+}
+
+.axis text {
+  fill: #666;
+  font-size: 12px;
+}
+
+.axis-label {
+  fill: #333;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Legend styling */
+.legend text {
+  fill: #333;
+  font-size: 13px;
+}
+
+.legend rect {
+  stroke: white;
+  stroke-width: 1px;
+}
+
+/* Tooltip styling */
+.tooltip {
+  position: absolute;
+  padding: 10px;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 200px;
+  z-index: 1000;
+}
+
+.tooltip strong {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Donut chart specific styling */
+.donut-label {
+  font-size: 16px;
+  font-weight: bold;
+  fill: white;
+}
+
+.donut-center-text {
+  font-size: 14px;
+  fill: #666;
+  text-anchor: middle;
+}
+
+/* Bar chart specific styling */
+.bar {
+  transition: opacity 0.2s;
+}
+
+/* Parallel coordinates specific styling */
+.parallel-line {
+  transition: stroke-width 0.2s, opacity 0.2s;
+}
+
+/* Make axis titles more prominent and with enough space */
+.axis-title {
+  font-weight: bold;
+  font-size: 14px;
+  fill: #333;
+}
+
+/* Fix the Year of Study axis tick labels */
+.year-axis text {
+  text-anchor: end;
+  transform: rotate(-30deg);
+  font-size: 10px;
+}
+
+/* Data source attribution */
+.data-source {
+  font-size: 12px;
+  fill: #999;
+  text-anchor: end;
+} 
