@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Science Salaries Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <header class="dashboard-header">
+    <div class="header-main-title">Data Science Salaries Dashboard</div>
+    <div class="header-sub-info">
+      <span>Data Source: ds_salaries.csv</span>
+      <span>Last Updated: Oct 26, 2023</span> <!-- Placeholder Date -->
+    </div>
+  </header>
+  
+  <div id="dashboard-grid">
+    <div class="grid-row">
+      <div id="overview" class="chart-container"></div>
+      <div id="focus" class="chart-container"></div>
+    </div>
+    <div class="grid-row">
+      <div id="advanced" class="chart-container"></div>
+      <div id="details-container" class="chart-container"> 
+        <h3>Chart Information</h3>
+        <div id="details">
+            <p>Click the <span class="info-icon-text">&#9432;</span> icon on any chart to learn more about its purpose and potential insights.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
