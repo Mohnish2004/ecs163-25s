@@ -1,5 +1,3 @@
-// main.js
-
 // global settings for dimensions and margins
 const margin = {top: 50, right: 50, bottom: 70, left: 70};
 const vizWidth = 500; // width for each visualization
@@ -8,12 +6,12 @@ const vizHeight = 350; // height for each visualization
 const fullWidth = vizWidth + margin.left + margin.right;
 const fullHeight = vizHeight + margin.top + margin.bottom;
 
-// store our original dataset
+// storing the original dataset
 let originalData = [];
-// keep track of currently filtered data
+// keeping track of currently filtered data
 let filteredData = [];
 
-// scales we'll need across different views
+// scales i need need across different views
 let overviewXScale, overviewYScale;
 let pcpDimensions = ['experience_numeric', 'salary_in_usd', 'remote_ratio', 'company_size_numeric'];
 let pcpYScales = {}; // scales for each pcp dimension
@@ -41,30 +39,30 @@ const companySizeColorScale = d3.scaleOrdinal()
     .domain(companySizeOrder)
     .range(d3.schemePastel1.slice(0, companySizeOrder.length)); // softer colors for bars
 
-// create a tooltip that we'll reuse across all charts
+// creating a tooltip that ill reuse across all charts
 const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
 
-// load and process our data
+// loading and processing our data
 d3.csv("data/ds_salaries.csv").then(data => {
-    // convert string values to numbers where needed
+    // converting string values to numbers where needed
     data.forEach((d, i) => {
         d.id = i; // unique id for each job
         d.work_year = +d.work_year;
         d.salary_in_usd = +d.salary_in_usd;
         d.remote_ratio = +d.remote_ratio;
 
-        // map experience levels to numbers for the pcp
+        // mapping experience levels to numbers for the pcp
         const expMap = { 'EN': 0, 'MI': 1, 'SE': 2, 'EX': 3 };
         d.experience_numeric = expMap[d.experience_level];
 
-        // map company sizes to numbers for the pcp
+        // mapping company sizes to numbers for the pcp
         const sizeMap = { 'S': 0, 'M': 1, 'L': 2 };
         d.company_size_numeric = sizeMap[d.company_size];
     });
 
-    // clean up the data - remove any invalid entries
+    // cleaning up the data - removing any invalid entries
     originalData = data.filter(d => 
         d.salary_in_usd > 0 &&
         d.experience_numeric !== undefined &&
@@ -73,15 +71,15 @@ d3.csv("data/ds_salaries.csv").then(data => {
         d.experience_level !== undefined
     );
 
-    // start with all data visible
+    // starting with all data visible
     filteredData = [...originalData];
 
-    // set up our three main views
+    // setting up our three main views
     initOverview(originalData);
     initFocus();
     initPCP(originalData);
 
-    // draw everything with full dataset
+    // drawing everything with full dataset
     updateOverview(filteredData);
     updateFocus(filteredData);
     updatePCP(filteredData);
@@ -90,7 +88,21 @@ d3.csv("data/ds_salaries.csv").then(data => {
     console.error("oops! something went wrong loading the data:", error);
 });
 
-// --- overview: bar chart showing jobs per year ---
+//  transitions 
+// timing stuff:
+//  using 750ms for the main stuff (when things enter/update)
+//  exits are quicker (500ms)
+//  hover stuff is super quick (100ms)
+//  immediate stuff like clicks = 50ms (basically instant)
+
+// some rules trying to follow (mostly):
+//  doing one thing at a time when stuff gets complex
+//  (first fade out old stuff, then move things, then fade in new stuff)
+//  using that cubic ease thing for smooth movement
+//  giving users quick feedback when they do stuff
+
+
+// overview: bar chart showing jobs per year
 function initOverview(dataForScaling) {
   const svg = d3.select("#overview")
     .append("svg")
@@ -99,7 +111,7 @@ function initOverview(dataForScaling) {
         .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // calculate jobs per year for scaling
+    // calculating jobs per year for scaling
     const jobsByYear = d3.rollup(dataForScaling, v => v.length, d => d.work_year);
     const years = Array.from(jobsByYear.keys()).sort(d3.ascending);
 
@@ -154,7 +166,7 @@ function initOverview(dataForScaling) {
     // brush
   const brush = d3.brushX()
         .extent([[0, 0], [vizWidth, vizHeight]])
-        .on("end", brushed); // changed to "end" to avoid rapid updates during brushing
+        .on("end", brushed); // changed to "end" to avoid rapid updates
 
   svg.append("g")
     .attr("class", "brush")
@@ -169,10 +181,10 @@ function updateOverview(data) {
     const jobsByYear = d3.rollup(data, v => v.length, d => d.work_year);
     const currentYearsInData = Array.from(jobsByYear.keys()).sort(d3.ascending);
     
-    // ensure scales cover all possible years from original data for consistency
+    // making sure scales cover all possible years from original data for consistency
     const allYears = Array.from(new Set(originalData.map(d => d.work_year))).sort(d3.ascending);
     overviewXScale.domain(allYears); // update domain if it changed dynamically
-    // y scale might need to be re-evaluated based on *originalData* if we want a stable max
+    // y scale might need to be re evaluated based on original Data*if i want a stable max
     const maxCountOriginal = d3.max(allYears, y => d3.rollup(originalData, v=>v.length, d=>d.work_year).get(y) || 0);
     overviewYScale.domain([0, maxCountOriginal || 10]).nice();
 
@@ -189,11 +201,11 @@ function updateOverview(data) {
         .attr("height", 0)
         .remove();
 
-    bars.enter() // add new bars
+    bars.enter() // adding       new bars
         .append("rect")
         .attr("class", "bar")
         .attr("x", d => overviewXScale(d))
-        .attr("y", vizHeight) // start from bottom for animation
+        .attr("y", vizHeight) // starting from bottom for animation
         .attr("width", overviewXScale.bandwidth())
         .attr("height", 0)
         .attr("fill", "steelblue")
@@ -215,7 +227,7 @@ function updateOverview(data) {
       .merge(bars) // update existing bars
         .transition().duration(750)
         .attr("x", d => overviewXScale(d))
-        .attr("y", d => overviewYScale(jobsByYear.get(d) || 0)) // use 0 if year not in current filtered data
+        .attr("y", d => overviewYScale(jobsByYear.get(d) || 0)) // using 0 if year not in current filtered data
         .attr("width", overviewXScale.bandwidth())
         .attr("height", d => vizHeight - overviewYScale(jobsByYear.get(d) || 0))
         .attr("fill", "steelblue");
@@ -237,18 +249,18 @@ function updateOverview(data) {
         
         filteredData = originalData.filter(d => selectedYears.includes(d.work_year));
 
-        // visually indicate brushed vs non-brushed bars
+        // visually indicating brushed vs non-brushed bars
         overviewBars
             .classed("non-brushed", d => !selectedYears.includes(d))
             .style("fill", d => selectedYears.includes(d) ? "orange" : "steelblue");
     }
-    // update other charts with the new filteredData
+    // updating other charts with the new filteredData
     updateFocus(filteredData);
     updatePCP(filteredData);
     // removed the redundant fill update line from here as it's handled above
 }
 
-// --- 2. FOCUS: GROUPED BAR CHART (Average Salary by Experience & Company Size) ---
+// focus: grouped bar chart (Average Salary by Experience & Company Size)
 function initFocus() { // data for scaling will be handled in updateFocus
     const svg = d3.select("#focus")
         .append("svg")
@@ -336,19 +348,19 @@ function initFocus() { // data for scaling will be handled in updateFocus
 function updateFocus(data) {
     const svg = d3.select("#focus svg g");
 
-    // 1. process data: group by experience_level, then by company_size, and calculate average salary
+    //  processing dat group by experience_level, then by company_size, and calculating average salary
     const groupedData = d3.rollup(data, 
         v => ({ // for each group (e.g., EN-S, EN-M, etc.)
             averageSalary: d3.mean(v, d => d.salary_in_usd),
             count: v.length,
-            // store the actual data points if needed for detailed selection later
+            // storing the actual data points if needed for detailed selection later
             // jobs: v 
         }),
         d => d.experience_level, 
         d => d.company_size
     );
 
-    // convert map to array structure suitable for D3 data binding
+    // converting map to array structure suitable for D3 data binding
     // [{ experience_level: 'EN', values: [{ company_size: 'S', averageSalary: X, count: Y }, ...] }, ...]
     const processedData = Array.from(groupedData, ([expLevel, companyMap]) => ({
         experience_level: expLevel,
@@ -397,60 +409,33 @@ function updateFocus(data) {
         .data(d => d.values, d_val => d_val.company_size); 
 
     bars.exit()
-        .transition().duration(500)
-        .attr("y", focusYScale(0))
+        .transition()
+        .duration(500)  // keeping exit transitions a bit faster than enters
+        .attr("y", focusYScale(0))  // bars smoothly shrink down to zero height
         .attr("height", 0)
         .remove();
 
-    bars.enter().append("rect")
+    // new bars start from zero height and grow up
+    bars.enter()
+        .append("rect")
         .attr("class", "bar")
         .attr("x", d_val => focusX1Scale(d_val.company_size))
-        .attr("y", focusYScale(0)) // start from bottom for animation
+        .attr("y", focusYScale(0))  // starting at the bottom
         .attr("width", focusX1Scale.bandwidth())
-        .attr("height", 0)
+        .attr("height", 0)  // starting with no height
         .style("fill", d_val => companySizeColorScale(d_val.company_size))
-        .on("mouseover", function(event, d_val) {
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", .9);
-            const parentData = d3.select(this.parentNode).datum(); // get experience level
-            tooltip.html(
-                `Exp: ${parentData.experience_level}, Size: ${d_val.company_size}<br/>` +
-                `Avg Salary: ${d3.format("$,.0f")(d_val.averageSalary)}<br/>` +
-                `Jobs: ${d_val.count}`)
-                .style("left", (event.pageX + 5) + "px") // position tooltip near mouse
-                .style("top", (event.pageY - 28) + "px");
-
-            // slightly enhance the hovered bar
-            d3.select(this).style('opacity', 0.7);
-        })
-        .on("mouseout", function(d_val) {
-            tooltip.transition()
-                .duration(500)
-                .style("opacity", 0);
-            d3.select(this).style('opacity', 1); // reset opacity
-        })
-        .on("click", (event, d_val) => { // d_val is {company_size, averageSalary, count}
-            // highlight selected bar
-            d3.select("#focus svg g").selectAll(".bar").style("stroke", null);
-            d3.select(event.currentTarget)
-                .style("stroke", "black")
-                .style("stroke-width", 2);
-            
-            // optional: log to console or keep a minimal update if needed elsewhere
-            // console.log("Clicked bar data:", d3.select(event.currentTarget.parentNode).datum().experience_level, d_val);
-        })
-      .merge(bars) // update existing bars
-        .transition().duration(750)
+        .merge(bars)  // handling both new and existing bars together
+        .transition()
+        .duration(750)  // giving enough time to track the movement
+        .ease(d3.easeCubicInOut)  // smooth acceleration and deceleration
         .attr("x", d_val => focusX1Scale(d_val.company_size))
         .attr("y", d_val => focusYScale(d_val.averageSalary))
         .attr("width", focusX1Scale.bandwidth())
-        .attr("height", d_val => vizHeight - focusYScale(d_val.averageSalary))
-        .style("fill", d_val => companySizeColorScale(d_val.company_size));
+        .attr("height", d_val => vizHeight - focusYScale(d_val.averageSalary));
 }
 
 
-// --- 3. ADVANCED: PARALLEL COORDINATES PLOT (PCP) ---
+// advanced: parallel coordinates plot (PCP)
 function initPCP(dataForScaling) {
   const svg = d3.select("#advanced")
     .append("svg")
@@ -459,13 +444,13 @@ function initPCP(dataForScaling) {
         .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // create x scale for dimensions
+    // creating x scale for dimensions
     const pcpXScale = d3.scalePoint()
         .range([0, vizWidth])
-        .padding(0.2) // add padding between axes
+        .padding(0.2) // adding padding between axes
         .domain(pcpDimensions);
 
-    // create y scale for each dimension
+    // creating y scale for each dimension
     pcpDimensions.forEach(dim => {
         let domain;
         if (dim === 'experience_numeric' || dim === 'company_size_numeric') {
@@ -484,7 +469,7 @@ function initPCP(dataForScaling) {
         }
     });
 
-    // add a group for each dimension.
+    // adding a group for each dimension.
     const dimensionGroups = svg.selectAll(".dimension")
         .data(pcpDimensions)
         .enter().append("g")
@@ -518,11 +503,10 @@ function initPCP(dataForScaling) {
     // placeholder for lines (foreground)
     svg.append("g").attr("class", "pcp-lines-foreground");
     // placeholder for lines (background for context if brushing active)
-    // svg.append("g").attr("class", "pcp-lines-background"); // If you add this feature
 
-    // add PCP Color Legend for Experience Level
+    // adding PCP Color Legend for Experience Level
     const pcpColorLegend = svg.selectAll(".pcp-color-legend")
-        .data(experienceColorScalePCP.domain()) // use PCP specific color scale
+        .data(experienceColorScalePCP.domain()) // using PCP specific color scale
         .enter().append("g")
         .attr("class", "legend pcp-color-legend")
         .attr("transform", (d, i) => `translate(${i * 70}, ${vizHeight + margin.bottom - 30})`); // position below chart
@@ -531,7 +515,7 @@ function initPCP(dataForScaling) {
         .attr("x", 0)
         .attr("width", 12)
         .attr("height", 12)
-        .style("fill", experienceColorScalePCP); // use PCP specific color scale
+        .style("fill", experienceColorScalePCP); // using PCP specific color scale
 
     pcpColorLegend.append("text")
         .attr("x", 18)
@@ -547,13 +531,13 @@ function initPCP(dataForScaling) {
 // path generator for PCP
 function pcpPath(d) {
     return d3.line()(pcpDimensions.map(p => {
-        // ensure pcpXScale and pcpYScales[p] are defined and d[p] is valid
+        // making sure pcpXScale and pcpYScales[p] are defined and d[p] is valid
         if (pcpDimensions.includes(p) && pcpYScales[p] && d[p] !== undefined) {
              const pcpXScale = d3.scalePoint().range([0, vizWidth]).padding(0.2).domain(pcpDimensions);
             return [pcpXScale(p), pcpYScales[p](d[p])];
         }
-        return null; // skip if data is missing for a dimension point
-    }).filter(p => p !== null)); // filter out null points to avoid line errors
+        return null; // skipping if data is missing for a dimension point
+    }).filter(p => p !== null)); // filtering out null points to avoid line errors
 }
 
 
@@ -561,7 +545,7 @@ function updatePCP(data) {
     const svg = d3.select("#advanced svg g");
     const linesForeground = svg.select(".pcp-lines-foreground");
 
-    // draw the lines for the filtered data
+    // drawing the lines for the filtered data
     const pcpLines = linesForeground.selectAll(".pcp-line")
         .data(data, d => d.id);
 
@@ -575,24 +559,23 @@ function updatePCP(data) {
         .attr("class", "pcp-line")
         .attr("d", pcpPath)
         .style("fill", "none")
-        .style("stroke", d => experienceColorScalePCP(d.experience_level)) // use pcp specific color scale
-        .style("stroke-opacity", 0) 
+        .style("stroke", d => experienceColorScalePCP(d.experience_level))
+        .style("stroke-opacity", 0)  // starting invisible
         .on("mouseover", function(event, d_pcp) {
-            // select all PCP lines
-            const allPcpLines = d3.select("#advanced svg g").selectAll(".pcp-line");
-            
-            // dull all other lines
-            allPcpLines
-                .filter(function() { return this !== event.currentTarget; }) // don't dull the current line
-                .transition().duration(100)
+            //  make all other lines super faint
+            const allPcpLines = d3.select("#advanced svg g")
+                .selectAll(".pcp-line")
+                .filter(function() { return this !== event.currentTarget; })
+                .transition().duration(100)  // quick fade out
                 .style("stroke-opacity", 0.05);
 
-            // highlight the current line
+            // now making our selected line stand out
             d3.select(event.currentTarget)
-              .raise() // bring to front
-              .transition().duration(50)
-              .style("stroke-width", "3px") // slightly thicker for more emphasis
-              .style("stroke-opacity", 0.95);
+                .raise()  // bringing it to front
+                .transition()
+                .duration(50)  // super quick highlight
+                .style("stroke-width", "3px")
+                .style("stroke-opacity", 0.95);
 
             tooltip.transition().duration(200).style("opacity", .9);
             tooltip.html(
@@ -610,19 +593,14 @@ function updatePCP(data) {
               .style("stroke-opacity", 0.3); // default active opacity
 
             tooltip.transition().duration(500).style("opacity", 0);
-            // no need to .lower() explicitly if all opacities are reset, 
-            // but good to keep if there were other z-index manipulations.
         })
       .merge(pcpLines)
-        .transition().duration(750)
-        .attr("d", pcpPath) 
-        .style("stroke", d => experienceColorScalePCP(d.experience_level)) // use PCP specific color scale
-        .style("stroke-opacity", 0.3); 
+        .transition()
+        .duration(750)  // matching duration with other transitions for consistency
+        .attr("d", pcpPath)
+        .style("stroke-opacity", 0.3);  // fading to final opacity
 }
 
-// --- Utility for Details Pane ---
-// (The #details div is expected in index.html)
-// Example: <div id="details">Select a point in the scatter plot for details.</div>
 
 const chartInfo = {
     overview: {
